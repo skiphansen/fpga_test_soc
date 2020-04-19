@@ -125,19 +125,18 @@ helloworld!
 helloworld!
 ```
 
-
 ### Serial port 
 
 We will use the DDC port on the micro HDMI port for our serial port.  This
 will leave the DVI port available for a display if needed. 
 
-| HDMI Signal | Pin   | Serial signal |
-| ----------- | ----- | ------------- |
-| DDC SCL     |  15   |   PC -> Pano  |
-| DDC SDA     |  16   |   Pano -> PC  |
-| Ground      |  17   |   Ground      |
+| HDMI Signal | Pin   | Serial signal | FPGA Pin |
+| ----------- | ----- | ------------- | -------- |
+| DDC SCL     |  15   |   PC -> Pano  |  AA21    |
+| DDC SDA     |  16   |   Pano -> PC  |  AB19    |
+| Ground      |  17   |   Ground      |          |
 
-An 3.3 volt compatible serial port adapter and an homebrew adapter cable is 
+An 5 volt compatible serial port adapter and an homebrew adapter cable is 
 required.  
 
 I use a FTDI [TTL-232R-3V3](https://www.digikey.com/product-detail/en/ftdi-future-technology-devices-international-ltd/TTL-232R-3V3/768-1015-ND/1836393)
@@ -167,22 +166,39 @@ Here's another inexpensive [possibility](https://www.ebay.com/itm/Micro-Mini-HDM
 ![](./assets/micro_hdmi_plug.png) 
 
 
+### USB Serial port udev rules
+
+Using an FTDI based serial cable caused all kind of grief with iMpact, which
+is one of the reasons I avoid it as much as possible.  Unfortunately it also
+caused chipscope to crash for the same reason.  I use chipscope occasionally
+while debugging since it's easier (sometimes) than modeling hardware devices
+attached to the FPGA.
+
+I eventually discovered that the Xilnux tools attempted to open the FTDI serial 
+port while searching for the JTAG interface and CRASHED with a SEGFAULT when
+permission was denied.  
+
+I creating a rule for my serial port dongle that gives permission to all users 
+and that cured the problem.  
+
+```
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403",ATTRS{serial}=="FTFXZ3BX", SYMLINK+="ttyUSB.Pano",MODE="666"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0403",ATTRS{serial}=="FTFXZ3BX",MODE="666"
+```
+
+This sledge hammer solution isn't secure, but I'm not concerned as I'm only 
+user of my development PC.
+
+If you run into simular problems copy .../fpga_test_soc/fpga/panologic_g2/rules.d/TTL232R-3V3.rules 
+to /etc/udev/rules.d and then edit it to match your device.  Once you unplug 
+and plug your USB serial cable iMact and chipscope should work again.
+
+The rule also creates a symbolic link for the USB serial port to 
+/dev/ttyUSB.Pano so you can set the environment variable TARGET_PORT to 
+/dev/ttyUSB.Pano and never worry about the device name changing when you reboot 
+or connect other USB serial devices again.
+
 ### Pano Links
 
-- [Gitter](https://gitter.im/panologic/community) chat room for Panologic hackers.
-- Group.io [group](https://groups.io/g/panohackers/topics) for discussions about Panologic hacking 
-- [Original Hackaday](https://hackaday.com/2013/01/11/ask-hackaday-we-might-have-some-fpgas-to-hack/) article from 2013.  
-- Hackaday article on Tom's [Raytracker](https://hackaday.com/2018/12/07/racing-the-beam-on-a-thin-client-in-fpgas/).  
-- Hackaday article on my [Pacman](https://hackaday.com/2019/01/11/pac-man-fever-comes-to-the-pano-logic-fpga/) project.  
-- Hackaday article on Tom's [Joystick adapter](https://hackaday.com/2019/02/11/two-joysticks-talk-to-fpga-arcade-game-over-a-vga-cable/).  
-- Wenting Zhang's [VerilogBoy](https://github.com/zephray/VerilogBoy) project.
-- Hackaday article on My [pano_progfpga](https://hackaday.com/2019/04/19/pano-logic-fgpa-hacking-just-got-easier/) project
-- My [prog_fpga](https://github.com/skiphansen/pano_progfpga) project.
-- My [pacman](https://github.com/skiphansen/pano_man) project.
-- My [Hello World](https://github.com/skiphansen/pano_hello_g1) project.
-- My [USB sniffer](https://github.com/skiphansen/usb_sniffer/blob/master/fpga/panologic_g2/README.md) project.
-- https://github.com/tomverbeure/panologic
-- G1 [Schematics!](https://github.com/twj42/PanoLogicG2_ReverseEngineering/blob/master/files/G1_Schematics.zip)
-- https://github.com/tomverbeure/panologic-g2
-- https://twj42.github.io/PanoLogicG2_ReverseEngineering/
+Link to other Panologic information can be found [here](https://github.com/skiphansen/pano_blocks#pano-links)
 

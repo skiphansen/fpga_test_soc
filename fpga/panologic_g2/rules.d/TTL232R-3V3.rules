@@ -1,0 +1,2 @@
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403",ATTRS{serial}=="FTFXZ3BX", SYMLINK+="ttyUSB.Pano",MODE="666"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0403",ATTRS{serial}=="FTFXZ3BX",MODE="666"
